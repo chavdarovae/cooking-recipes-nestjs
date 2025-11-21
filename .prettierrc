@@ -1,0 +1,30 @@
+{
+    "printWidth": 80,
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "bracketSameLine": false,
+    "singleQuote": true,
+    "singleAttributePerLine": true,
+    "endOfLine": "lf",
+    "arrowParens": "always",
+    "quoteProps": "as-needed",
+    "jsxSingleQuote": false,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "overrides": [
+        {
+            "files": ["*.json", "*.yml", "*.yaml"],
+            "options": {
+                "printWidth": 80
+            }
+        },
+        {
+            "files": ["*.html"],
+            "options": {
+                "printWidth": 160,
+                "bracketSameLine": true
+            }
+        }
+    ]
+}
