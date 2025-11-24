@@ -22,7 +22,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@crp-nest/recipe": [
+      "@crp-nest-app/recipe": [
         "src/recipe/index.ts"
       ]
     }

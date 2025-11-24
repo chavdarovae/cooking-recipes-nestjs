@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { RecipeModule } from '@crp-nest/recipe';
+import { RecipeModule } from '@crp-nest-app/recipe';
 
 @Module({
     imports: [RecipeModule],
