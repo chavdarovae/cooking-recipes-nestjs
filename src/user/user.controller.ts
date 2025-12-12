@@ -5,7 +5,6 @@ import type { Response } from 'express';
 import type { LoginUserDTO } from './dtos/loginUser.dto';
 import type { UserType } from './types/user.type';
 import type { CreateUserDTO } from './dtos/createUser.dto';
-import type { UserResponceType } from './types/userResponse.type';
 import { User } from './decorators/user.decorator';
 
 @Controller('api/users')
@@ -16,7 +15,7 @@ export class UserController {
     async register(
         @Body() cerateUserDto: CreateUserDTO,
         @Res({ passthrough: true }) res: Response,
-    ): Promise<UserResponceType | null> {
+    ): Promise<UserType | null> {
         const { username, email, password } = cerateUserDto;
         const user = await this.authService.register(username, email, password);
 
@@ -31,7 +30,7 @@ export class UserController {
     async login(
         @Body() LoginUserDto: LoginUserDTO,
         @Res({ passthrough: true }) res: Response,
-    ): Promise<UserResponceType | null> {
+    ): Promise<UserType | null> {
         const { email, password } = LoginUserDto;
 
         const user = await this.authService.login(email, password);
@@ -40,7 +39,7 @@ export class UserController {
 
         const token = this.authService.generateToken(user);
         this.addTokenToCookie(token, res);
-        return user as UserResponceType;
+        return user;
     }
 
     @Get('logout')
@@ -55,7 +54,7 @@ export class UserController {
     }
 
     @Get('ownAccount')
-    async getOwnAccont(@User('email') email: any): Promise<UserType | null> {
+    async getOwnAccont(@User('email') email: string): Promise<UserType | null> {
         return await this.authService.getOwnAccount(email);
     }
 

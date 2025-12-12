@@ -4,6 +4,7 @@ import { verify } from 'jsonwebtoken';
 import { AUTH_COOKIE_NAME } from '@crp-nest-app/shared';
 import { UserType } from '../types/user.type';
 import { NextFunction, Request, Response } from 'express';
+import { UserTokenType } from '../types/userToken.type';
 
 interface AuthRequest extends Request {
     user?: UserType | null;
@@ -30,7 +31,7 @@ export class AuthMiddleware implements NestMiddleware {
 
         try {
             const decoded = verify(token, process.env.JWT_SECRET || '');
-            const decodedUserFromToken = decoded as { id: string };
+            const decodedUserFromToken = decoded as UserTokenType;
             const user = await this.authService.getUserById(
                 decodedUserFromToken.id,
             );

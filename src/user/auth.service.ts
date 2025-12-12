@@ -5,7 +5,7 @@ import { User, UserDocument } from 'src/user/user.schema';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import type { UserType } from './types/user.type';
-import type { UserResponceType } from './types/userResponse.type';
+import { UserTokenType } from './types/userToken.type';
 
 @Injectable()
 export class AuthService {
@@ -63,8 +63,8 @@ export class AuthService {
     }
 
     generateToken(user: UserType): string {
-        const payload = {
-            id: user._id,
+        const payload: UserTokenType = {
+            id: user._id.toString(),
             email: user.email,
             username: user.username,
             role: user.role,
@@ -82,24 +82,6 @@ export class AuthService {
 
     verifyToken(token: string) {
         return this.jwtService.verify(token);
-    }
-
-    buildUserResponse(user: UserDocument): UserResponceType {
-        const { _id, username, email, role, ...rest } = user;
-
-        const token = this.generateToken({
-            _id,
-            username,
-            email,
-            role,
-        });
-        return {
-            _id,
-            username,
-            email,
-            role,
-            token,
-        };
     }
 
     async getAllUsers(): Promise<UserType[]> {
