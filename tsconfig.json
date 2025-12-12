@@ -24,6 +24,12 @@
     "paths": {
       "@crp-nest-app/recipe": [
         "src/recipe/index.ts"
+      ],
+      "@crp-nest-app/user": [
+        "src/user/index.ts"
+      ],
+      "@crp-nest-app/shared": [
+        "src/shared/index.ts"
       ]
     }
   }
