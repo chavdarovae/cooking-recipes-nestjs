@@ -1,13 +1,18 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { UserRolesEnum } from '@crp-nest-app/shared';
+import { IsEmail, IsEnum, IsNotEmpty } from 'class-validator';
 
 export class CreateUserDTO {
     @IsNotEmpty()
-    readonly username: string;
+    username: string;
 
     @IsNotEmpty()
     @IsEmail()
-    readonly email: string;
+    email: string;
 
     @IsNotEmpty()
-    readonly password: string;
+    @IsEnum(UserRolesEnum)
+    role: string;
+
+    @IsNotEmpty()
+    password: string;
 }

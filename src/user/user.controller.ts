@@ -1,11 +1,27 @@
 import { AUTH_COOKIE_NAME } from '@crp-nest-app/shared';
 import { AuthService } from './auth.service';
-import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Put,
+    Query,
+    Res,
+    UseGuards,
+    UsePipes,
+    ValidationPipe,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import type { LoginUserDTO } from './dtos/loginUser.dto';
 import type { UserType } from './types/user.type';
 import type { CreateUserDTO } from './dtos/createUser.dto';
 import { User } from './decorators/user.decorator';
+import { AuthGuard } from './guards/user.guard';
+import { UpdateUserDTO } from './dtos/updateUser.dto';
+import { GetUserQueryDto } from './dtos/userSearchQuery.dto';
 
 @Controller('api/users')
 export class UserController {
@@ -48,9 +64,40 @@ export class UserController {
         return res.send({ message: 'User was loggedout successfully!' });
     }
 
-    @Get()
-    async getAll(): Promise<UserType[]> {
-        return await this.authService.getAllUsers();
+    @Get('accounts')
+    @UseGuards(AuthGuard)
+    async getAll(@Query() query: GetUserQueryDto): Promise<UserType[]> {
+        return await this.authService.getAllUsers(query);
+    }
+
+    @Post('accounts')
+    @UseGuards(AuthGuard)
+    @UsePipes(new ValidationPipe())
+    async createUser(
+        @Body() createDto: CreateUserDTO,
+        @User() currUser: UserType,
+    ): Promise<UserType | null> {
+        return await this.authService.createUser(createDto, currUser);
+    }
+
+    @Put('accounts/:id')
+    @UseGuards(AuthGuard)
+    @UsePipes(new ValidationPipe())
+    async updateUser(
+        @Param('id') id: string,
+        @Body() updateDto: UpdateUserDTO,
+        @User() currUser: UserType,
+    ): Promise<UserType | null> {
+        return await this.authService.updateUser(id, updateDto, currUser);
+    }
+
+    @Delete('accounts/:id')
+    @UseGuards(AuthGuard)
+    async deleteUser(
+        @Param('id') id: string,
+        @User() currUser: UserType,
+    ): Promise<UserType | null> {
+        return await this.authService.deleteUser(id, currUser);
     }
 
     @Get('ownAccount')

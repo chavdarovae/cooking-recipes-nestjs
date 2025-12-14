@@ -1,12 +1,14 @@
-import { IsEmail } from 'class-validator';
+import { UserRolesEnum } from '@crp-nest-app/shared';
+import { IsEmail, IsEnum, IsString, Length } from 'class-validator';
 
 export class UpdateUserDTO {
-	readonly username: string;
+    @IsString()
+    @Length(5)
+    username: string;
 
-	@IsEmail()
-	readonly email: string;
+    @IsEmail()
+    email: string;
 
-	readonly image: string;
-
-	readonly bio: string;
+    @IsEnum(UserRolesEnum)
+    role: string;
 }

@@ -28,14 +28,13 @@ export class RecipeService {
                 mongoQuery.$or = [{ title: regex }, { description: regex }];
             }
 
-            const skip = (page - 1) * entitiesPerPage;
-            const limit = entitiesPerPage;
-
             let queryBase = this.recipeModel.find(mongoQuery);
 
             if (sort) {
                 queryBase = queryBase.sort(sort);
             }
+            const skip = (page - 1) * entitiesPerPage;
+            const limit = entitiesPerPage;
 
             queryBase.skip(skip).limit(limit);
 
