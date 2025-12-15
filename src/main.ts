@@ -15,6 +15,13 @@ async function bootstrap() {
         }),
     );
 
+    app.enableCors({
+        origin: 'https://chavdarovae.github.io/cooking-recipes-angular',
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
+    });
+
     app.useGlobalFilters(new AllExceptionsFilter()); // Register globally all exception filters
     app.use(cookieParser());
     await app.listen(process.env.PORT ?? 3000);
