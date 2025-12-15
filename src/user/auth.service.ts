@@ -13,7 +13,11 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UpdateUserDTO } from './dtos/updateUser.dto';
 import { GetUserQueryDto } from './dtos/userSearchQuery.dto';
-import { GenericListResponseDTO, UserRolesEnum } from '@crp-nest-app/shared';
+import {
+    GenericListResponseDTO,
+    GenericMetaResponseDTO,
+    UserRolesEnum,
+} from '@crp-nest-app/shared';
 import { CreateUserDTO } from './dtos/createUser.dto';
 import { UserMapper } from './user.mapper';
 import { ResponseUserDTO } from './dtos/responseUser.dto';
@@ -121,7 +125,15 @@ export class AuthService {
             .lean()
             .exec();
 
-        return UserMapper.toResponseList(users);
+        const recipesCount = await this.userModel.countDocuments(mongoQuery);
+
+        const metaData = new GenericMetaResponseDTO(
+            page,
+            pageSize,
+            recipesCount,
+        );
+
+        return UserMapper.toResponseList(users, metaData);
     }
 
     async getUserById(id: string): Promise<ResponseUserDTO> {

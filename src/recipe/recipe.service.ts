@@ -13,7 +13,10 @@ import { UpdateRecipeDto } from './dtos/updateRecipe.dto';
 import { ResponseRecipeDto } from './dtos/responseRecipe.dto';
 import { RecipeMapper } from './recipe.mapper';
 import { log } from 'console';
-import { GenericListResponseDTO } from '@crp-nest-app/shared';
+import {
+    GenericListResponseDTO,
+    GenericMetaResponseDTO,
+} from '@crp-nest-app/shared';
 
 @Injectable()
 export class RecipeService {
@@ -64,7 +67,15 @@ export class RecipeService {
             .lean()
             .exec();
 
-        return RecipeMapper.toResponseList(recipes);
+        const recipesCount = await this.recipeModel.countDocuments(mongoQuery);
+
+        const metaData = new GenericMetaResponseDTO(
+            page,
+            pageSize,
+            recipesCount,
+        );
+
+        return RecipeMapper.toResponseList(recipes, metaData);
     }
 
     async getRecipeById(id: string): Promise<ResponseRecipeDto | null> {
