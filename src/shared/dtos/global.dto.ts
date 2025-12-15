@@ -10,7 +10,7 @@ export class GenericMetaDataRequestDTO {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
-    entitiesPerPage?: number;
+    pageSize?: number;
 
     @IsOptional()
     @IsString()
@@ -24,7 +24,7 @@ export class GenericMetaDataRequestDTO {
 export class GenericMetaResponseDTO {
     constructor(
         public page: number = 1,
-        public entitiesPerPage: number = 50,
+        public pageSize: number = 50,
         public total: number = 0,
         public sort?: string,
         public filter?: string,

@@ -29,16 +29,10 @@ export class RecipeService {
     async getAllRecipes(
         query?: GetRecipesQueryDto,
     ): Promise<GenericListResponseDTO<ResponseRecipeDto>> {
-        const {
-            search,
-            page = 1,
-            entitiesPerPage = 20,
-            sort,
-            ...rest
-        } = query || {};
+        const { search, page = 1, pageSize = 20, sort, ...rest } = query || {};
 
         const safeLimit = Math.min(
-            entitiesPerPage,
+            pageSize,
             RecipeService.MAX_ENTITIES_PER_PAGE,
         );
         const skip = (page - 1) * safeLimit;

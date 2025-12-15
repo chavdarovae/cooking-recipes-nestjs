@@ -86,18 +86,9 @@ export class AuthService {
     async getAllUsers(
         query?: GetUserQueryDto,
     ): Promise<GenericListResponseDTO<ResponseUserDTO>> {
-        const {
-            search,
-            role,
-            page = 1,
-            entitiesPerPage = 20,
-            sort,
-        } = query || {};
+        const { search, role, page = 1, pageSize = 20, sort } = query || {};
 
-        const safeLimit = Math.min(
-            entitiesPerPage,
-            AuthService.MAX_ENTITIES_PER_PAGE,
-        );
+        const safeLimit = Math.min(pageSize, AuthService.MAX_ENTITIES_PER_PAGE);
         const skip = (page - 1) * safeLimit;
 
         const mongoQuery: any = {};
@@ -134,9 +125,17 @@ export class AuthService {
     }
 
     async getUserById(id: string): Promise<ResponseUserDTO> {
-        if (!Types.ObjectId.isValid(id)) {
-            throw new BadRequestException('Invalid user id');
+        if (id === null) {
+            throw new HttpException(
+                'User has no valid credentials',
+                HttpStatus.UNAUTHORIZED,
+            );
         }
+
+        if (!Types.ObjectId.isValid(id)) {
+            // throw new BadRequestException('Invalid user id');
+        }
+
         const user = await this.userModel
             .findById(id)
             .select(AuthService.RESPONSE_FIELDS)
@@ -144,7 +143,7 @@ export class AuthService {
             .exec();
 
         if (!user) {
-            throw new Error('This user was not found!');
+            throw new NotFoundException('User not found!');
         }
         return UserMapper.toResponse(user);
     }
