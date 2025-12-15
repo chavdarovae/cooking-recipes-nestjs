@@ -17,7 +17,7 @@ import { GetRecipesQueryDto } from './dtos/recipeSerachQuery.dto';
 import { AuthGuard } from 'src/user/guards/user.guard';
 import { CreateRecipeDto } from './dtos/createRecipe.dto';
 import { UpdateRecipeDto } from './dtos/updateRecipe.dto';
-import { RecipeResponseDto } from './dtos/responseRecipe.dto';
+import { ResponseRecipeDto } from './dtos/responseRecipe.dto';
 
 @Controller('/api/recipes')
 export class RecipeController {
@@ -26,12 +26,12 @@ export class RecipeController {
     @Get()
     async getAll(
         @Query() query: GetRecipesQueryDto,
-    ): Promise<RecipeResponseDto[]> {
+    ): Promise<ResponseRecipeDto[]> {
         return this.recipeService.getAllRecipes(query);
     }
 
     @Get(':id')
-    async getById(@Param('id') id: string): Promise<RecipeResponseDto | null> {
+    async getById(@Param('id') id: string): Promise<ResponseRecipeDto | null> {
         return this.recipeService.getRecipeById(id);
     }
 
@@ -40,7 +40,7 @@ export class RecipeController {
     @UsePipes(new ValidationPipe())
     async createRecipe(
         @Body() createDto: CreateRecipeDto,
-    ): Promise<RecipeResponseDto> {
+    ): Promise<ResponseRecipeDto> {
         return this.recipeService.createRecipe(createDto);
     }
 
@@ -50,7 +50,7 @@ export class RecipeController {
     async updateRecipe(
         @Param() id: string,
         @Body() updateDto: UpdateRecipeDto,
-    ): Promise<RecipeResponseDto> {
+    ): Promise<ResponseRecipeDto> {
         return this.recipeService.updateRecipe(id, updateDto);
     }
 

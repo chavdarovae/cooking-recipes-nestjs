@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { IsString, IsUrl, Length } from 'class-validator';
 
-export class RecipeResponseDto {
+export class ResponseRecipeDto {
     title: string;
     ingredients: string;
     instructions: string;

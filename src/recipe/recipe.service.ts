@@ -10,7 +10,7 @@ import { Model, Types } from 'mongoose';
 import { GetRecipesQueryDto } from './dtos/recipeSerachQuery.dto';
 import { CreateRecipeDto } from './dtos/createRecipe.dto';
 import { UpdateRecipeDto } from './dtos/updateRecipe.dto';
-import { RecipeResponseDto } from './dtos/responseRecipe.dto';
+import { ResponseRecipeDto } from './dtos/responseRecipe.dto';
 import { RecipeMapper } from './recipe.mapper';
 
 @Injectable()
@@ -26,7 +26,7 @@ export class RecipeService {
 
     async getAllRecipes(
         query?: GetRecipesQueryDto,
-    ): Promise<RecipeResponseDto[]> {
+    ): Promise<ResponseRecipeDto[]> {
         const {
             search,
             page = 1,
@@ -71,7 +71,7 @@ export class RecipeService {
         return recipes ? RecipeMapper.toResponseList(recipes) : [];
     }
 
-    async getRecipeById(id: string): Promise<RecipeResponseDto | null> {
+    async getRecipeById(id: string): Promise<ResponseRecipeDto | null> {
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid recipe id');
         }
@@ -90,7 +90,7 @@ export class RecipeService {
 
     async createRecipe(
         createRecipeDto: CreateRecipeDto,
-    ): Promise<RecipeResponseDto> {
+    ): Promise<ResponseRecipeDto> {
         const recipe = await this.recipeModel.create(createRecipeDto);
         return RecipeMapper.toResponse(recipe.toObject());
     }
@@ -98,7 +98,7 @@ export class RecipeService {
     async updateRecipe(
         id: string,
         updateRecipeDto: UpdateRecipeDto,
-    ): Promise<RecipeResponseDto> {
+    ): Promise<ResponseRecipeDto> {
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid recipe id');
         }
