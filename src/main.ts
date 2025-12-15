@@ -15,10 +15,19 @@ async function bootstrap() {
         }),
     );
 
+    const allowedOrigins = [
+        'http://localhost:4200',
+        'https://chavdarovae.github.io',
+    ];
+
     app.enableCors({
-        origin: 'https://chavdarovae.github.io/cooking-recipes-angular',
-        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         credentials: true,
     });
 
