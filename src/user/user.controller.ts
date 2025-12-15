@@ -117,7 +117,7 @@ export class UserController {
     private addTokenToCookie(token: string, res: Response) {
         res.cookie(AUTH_COOKIE_NAME, token, {
             httpOnly: true,
-            sameSite: 'lax', // should not be null
+            sameSite: 'none', // should not be null
             secure: process.env.NODE_ENV === 'production',
         });
     }
@@ -125,7 +125,7 @@ export class UserController {
     private clearAuthCookie(res: Response) {
         res.clearCookie(AUTH_COOKIE_NAME, {
             httpOnly: true,
-            sameSite: 'lax', // should not be null
+            sameSite: 'none', // should not be null
             secure: process.env.NODE_ENV === 'production',
             path: '/',
         });
