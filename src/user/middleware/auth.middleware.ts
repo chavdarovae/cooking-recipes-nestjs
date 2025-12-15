@@ -1,17 +1,13 @@
 import { AuthService } from './../auth.service';
-import {
-    BadRequestException,
-    Injectable,
-    NestMiddleware,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { verify } from 'jsonwebtoken';
 import { AUTH_COOKIE_NAME } from '@crp-nest-app/shared';
-import { UserType } from '../types/user.type';
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
+import { ResponseUserDTO } from '../dtos/responseUser.dto';
 
 interface AuthRequest extends Request {
-    user?: UserType | null;
+    user?: ResponseUserDTO | null;
 }
 
 @Injectable()
@@ -35,15 +31,15 @@ export class AuthMiddleware implements NestMiddleware {
 
         try {
             const decoded = verify(token, process.env.JWT_SECRET || '');
-            const decodedUserFromToken = decoded as { _id: string };
+            const decodedUserFromToken = decoded as { id: string };
 
-            if (!Types.ObjectId.isValid(decodedUserFromToken._id)) {
+            if (!Types.ObjectId.isValid(decodedUserFromToken.id)) {
                 req.user = null;
                 next();
                 return;
             }
             const user = await this.authService.getUserById(
-                decodedUserFromToken._id,
+                decodedUserFromToken.id,
             );
             req.user = user || null;
 

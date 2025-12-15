@@ -30,3 +30,6 @@ UserSchema.pre<UserDocument>('save', async function (next) {
     }
     next();
 });
+
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ username: 1 }, { unique: true });

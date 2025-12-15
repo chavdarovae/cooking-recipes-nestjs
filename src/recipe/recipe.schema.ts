@@ -28,3 +28,6 @@ export class Recipe {
 }
 
 export const RecipeSchema = SchemaFactory.createForClass(Recipe);
+
+RecipeSchema.index({ title: 'text', description: 'text' }); // text search
+RecipeSchema.index({ createdAt: -1 }); // fast sorting by creation date

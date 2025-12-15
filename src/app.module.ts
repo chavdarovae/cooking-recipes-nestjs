@@ -15,6 +15,7 @@ import { AuthMiddleware } from './user/middleware/auth.middleware';
                 process.env.DB_URL_LOCAL ||
                 'mongodb://localhost:27017') +
                 `${process.env.DB_NAME}?retryWrites=true&w=majority`,
+            { autoIndex: false },
         ),
         UserModule,
         RecipeModule,

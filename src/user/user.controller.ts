@@ -16,12 +16,12 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import type { LoginUserDTO } from './dtos/loginUser.dto';
-import type { UserType } from './types/user.type';
 import type { CreateUserDTO } from './dtos/createUser.dto';
 import { User } from './decorators/user.decorator';
 import { AuthGuard } from './guards/user.guard';
 import { UpdateUserDTO } from './dtos/updateUser.dto';
 import { GetUserQueryDto } from './dtos/userSearchQuery.dto';
+import { ResponseUserDTO } from './dtos/responseUser.dto';
 
 @Controller('api/users')
 export class UserController {
@@ -31,7 +31,7 @@ export class UserController {
     async register(
         @Body() cerateUserDto: CreateUserDTO,
         @Res({ passthrough: true }) res: Response,
-    ): Promise<UserType | null> {
+    ): Promise<ResponseUserDTO | null> {
         const { username, email, password } = cerateUserDto;
         const user = await this.authService.register(username, email, password);
 
@@ -46,12 +46,14 @@ export class UserController {
     async login(
         @Body() LoginUserDto: LoginUserDTO,
         @Res({ passthrough: true }) res: Response,
-    ): Promise<UserType | null> {
+    ): Promise<ResponseUserDTO | null> {
         const { email, password } = LoginUserDto;
 
         const user = await this.authService.login(email, password);
 
         if (!user) return null;
+
+        console.log({ user });
 
         const token = this.authService.generateToken(user);
         this.addTokenToCookie(token, res);
@@ -66,7 +68,7 @@ export class UserController {
 
     @Get('accounts')
     @UseGuards(AuthGuard)
-    async getAll(@Query() query: GetUserQueryDto): Promise<UserType[]> {
+    async getAll(@Query() query: GetUserQueryDto): Promise<ResponseUserDTO[]> {
         return await this.authService.getAllUsers(query);
     }
 
@@ -75,8 +77,8 @@ export class UserController {
     @UsePipes(new ValidationPipe())
     async createUser(
         @Body() createDto: CreateUserDTO,
-        @User() currUser: UserType,
-    ): Promise<UserType | null> {
+        @User() currUser: ResponseUserDTO,
+    ): Promise<ResponseUserDTO | null> {
         return await this.authService.createUser(createDto, currUser);
     }
 
@@ -86,8 +88,8 @@ export class UserController {
     async updateUser(
         @Param('id') id: string,
         @Body() updateDto: UpdateUserDTO,
-        @User() currUser: UserType,
-    ): Promise<UserType | null> {
+        @User() currUser: ResponseUserDTO,
+    ): Promise<ResponseUserDTO | null> {
         return await this.authService.updateUser(id, updateDto, currUser);
     }
 
@@ -95,18 +97,22 @@ export class UserController {
     @UseGuards(AuthGuard)
     async deleteUser(
         @Param('id') id: string,
-        @User() currUser: UserType,
-    ): Promise<UserType | null> {
+        @User() currUser: ResponseUserDTO,
+    ): Promise<ResponseUserDTO | null> {
         return await this.authService.deleteUser(id, currUser);
     }
 
     @Get('ownAccount')
-    async getOwnAccont(@User('email') email: string): Promise<UserType | null> {
-        return await this.authService.getOwnAccount(email);
+    async getOwnAccont(
+        @User('id') id: string,
+    ): Promise<ResponseUserDTO | null> {
+        console.log({ id });
+
+        return await this.authService.getUserById(id);
     }
 
     @Get(':id')
-    async getById(@Param('id') id: string): Promise<UserType | null> {
+    async getById(@Param('id') id: string): Promise<ResponseUserDTO | null> {
         return await this.authService.getUserById(id);
     }
 

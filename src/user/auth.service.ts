@@ -1,17 +1,30 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpException,
+    HttpStatus,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User, UserDocument } from 'src/user/user.schema';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import type { UserType } from './types/user.type';
 import { UpdateUserDTO } from './dtos/updateUser.dto';
 import { GetUserQueryDto } from './dtos/userSearchQuery.dto';
 import { UserRolesEnum } from '@crp-nest-app/shared';
 import { CreateUserDTO } from './dtos/createUser.dto';
+import { UserMapper } from './user.mapper';
+import { ResponseUserDTO } from './dtos/responseUser.dto';
 
 @Injectable()
 export class AuthService {
+    private static readonly RESPONSE_FIELDS = '_id email username role';
+    private static readonly RESPONSE_FIELDS_WITH_PASS =
+        '_id email username role password';
+    private static readonly ALLOWED_SORT_FIELDS = ['username', 'createdAt'];
+    private static readonly MAX_ENTITIES_PER_PAGE = 50;
+
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         private jwtService: JwtService,
@@ -21,9 +34,10 @@ export class AuthService {
         username: string,
         email: string,
         password: string,
-    ): Promise<UserDocument | null> {
+    ): Promise<ResponseUserDTO> {
         const existingUsername = await this.userModel.findOne({ username });
         const existingEmail = await this.userModel.findOne({ email });
+
         if (existingUsername || existingEmail) {
             throw new HttpException(
                 'Username or email already taken!',
@@ -31,24 +45,25 @@ export class AuthService {
             );
         }
 
-        return await this.userModel.create({
+        const user = await this.userModel.create({
             username,
             email,
             password,
             role: 'USER',
         });
+
+        return UserMapper.toResponse(user);
     }
 
-    async login(email: string, password: string): Promise<UserDocument | null> {
+    async login(email: string, password: string): Promise<ResponseUserDTO> {
         const userToLogin = await this.userModel
             .findOne({ email })
-            .select('_id email username role password');
+            .select(AuthService.RESPONSE_FIELDS_WITH_PASS)
+            .lean()
+            .exec();
 
         if (!userToLogin) {
-            throw new HttpException(
-                'Email is not valid!',
-                HttpStatus.NOT_FOUND,
-            );
+            throw new NotFoundException('Email not found!');
         }
 
         const isPasswordCorrect = await this.comparePassword(
@@ -59,19 +74,99 @@ export class AuthService {
         if (!isPasswordCorrect) {
             throw new HttpException(
                 'Password is not valid!',
-                HttpStatus.CONFLICT,
+                HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-        return userToLogin;
+
+        return UserMapper.toResponse(userToLogin);
+    }
+
+    async getAllUsers(query?: GetUserQueryDto): Promise<ResponseUserDTO[]> {
+        const {
+            search,
+            role,
+            page = 1,
+            entitiesPerPage = 20,
+            sort,
+        } = query || {};
+
+        const safeLimit = Math.min(
+            entitiesPerPage,
+            AuthService.MAX_ENTITIES_PER_PAGE,
+        );
+        const skip = (page - 1) * safeLimit;
+
+        const mongoQuery: any = {};
+        if (search) {
+            const regex = { $regex: search, $options: 'i' };
+            mongoQuery.$or = [{ username: regex }, { email: regex }];
+        }
+
+        if (role) {
+            mongoQuery.role = role;
+        }
+
+        let sortQuery;
+
+        if (
+            sort &&
+            AuthService.ALLOWED_SORT_FIELDS.includes(sort.replace('-', ''))
+        ) {
+            sortQuery = sort.startsWith('-')
+                ? { [sort.slice(1)]: -1 }
+                : { [sort]: 1 };
+        }
+
+        const users = await this.userModel
+            .find(mongoQuery)
+            .sort(sortQuery)
+            .skip(skip)
+            .limit(safeLimit)
+            .select(AuthService.RESPONSE_FIELDS)
+            .lean()
+            .exec();
+
+        return UserMapper.toResponseList(users);
+    }
+
+    async getUserById(id: string): Promise<ResponseUserDTO> {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid user id');
+        }
+        const user = await this.userModel
+            .findById(id)
+            .select(AuthService.RESPONSE_FIELDS)
+            .lean()
+            .exec();
+
+        if (!user) {
+            throw new Error('This user was not found!');
+        }
+        return UserMapper.toResponse(user);
+    }
+
+    async getOwnAccount(email: string): Promise<ResponseUserDTO> {
+        const ownAccount = await this.userModel
+            .findOne({ email })
+            .select(AuthService.RESPONSE_FIELDS)
+            .lean()
+            .exec();
+
+        if (!ownAccount) {
+            throw new NotFoundException('User not found!');
+        }
+
+        return UserMapper.toResponse(ownAccount);
     }
 
     async createUser(
         createDto: CreateUserDTO,
-        currUser: UserType,
-    ): Promise<UserType | null> {
+        currUser: ResponseUserDTO,
+    ): Promise<ResponseUserDTO> {
         this.checkIfUserIsAuthorised(UserRolesEnum.ADMIN, currUser);
 
         const { username, email, role, password } = createDto;
+
         const existingUsername = await this.userModel.findOne({ username });
         const existingEmail = await this.userModel.findOne({ email });
         if (existingUsername || existingEmail) {
@@ -80,43 +175,54 @@ export class AuthService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-        return await this.userModel.create({
+        const user = await this.userModel.create({
             username,
             email,
             password,
             role,
         });
+
+        return UserMapper.toResponse(user.toObject());
     }
 
     async updateUser(
         id: string,
         updateDto: UpdateUserDTO,
-        currUser: UserType,
-    ): Promise<UserType | null> {
+        currUser: ResponseUserDTO,
+    ): Promise<ResponseUserDTO | null> {
         this.checkIfUserIsAuthorised(UserRolesEnum.ADMIN, currUser);
 
-        const userToUpdate = await this.userModel.findByIdAndUpdate(
-            id,
-            updateDto,
-        );
-        if (!userToUpdate) {
-            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid user id');
         }
-        return userToUpdate;
+
+        const userToUpdate = await this.userModel
+            .findByIdAndUpdate(id, updateDto, { new: true })
+            .lean()
+            .exec();
+
+        if (!userToUpdate) {
+            throw new NotFoundException('User not found!');
+        }
+
+        return UserMapper.toResponse(userToUpdate);
     }
 
-    async deleteUser(id: string, currUser: UserType): Promise<null> {
+    async deleteUser(id: string, currUser: ResponseUserDTO): Promise<null> {
         this.checkIfUserIsAuthorised(UserRolesEnum.ADMIN, currUser);
+
         const userToDelete = await this.userModel.findByIdAndDelete(id);
+
         if (!userToDelete) {
-            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            throw new NotFoundException('User not found!');
         }
+
         return null;
     }
 
-    generateToken(user: UserType): string {
+    generateToken(user: any): string {
         const payload = {
-            _id: user._id,
+            id: user.id,
             email: user.email,
             username: user.username,
             role: user.role,
@@ -128,76 +234,17 @@ export class AuthService {
         });
     }
 
-    private comparePassword(password: string, hashedPassword: string) {
-        return bcrypt.compare(password, hashedPassword);
-    }
-
     verifyToken(token: string) {
         return this.jwtService.verify(token);
     }
 
-    async getAllUsers(query?: GetUserQueryDto): Promise<UserType[]> {
-        const {
-            search,
-            role,
-            page = 1,
-            entitiesPerPage = 20,
-            sort,
-        } = query || {};
-        const mongoQuery: any = {};
-        if (search) {
-            const regex = { $regex: search, $options: 'i' };
-            mongoQuery.$or = [{ username: regex }, { email: regex }];
-        }
-
-        if (role) {
-            console.log({ role });
-
-            mongoQuery.role = role;
-        }
-
-        let queryBase = this.userModel.find(mongoQuery);
-
-        if (sort) {
-            queryBase = queryBase.sort(sort);
-        }
-        const skip = (page - 1) * entitiesPerPage;
-        const limit = entitiesPerPage;
-
-        queryBase.skip(skip).limit(limit);
-
-        return queryBase.select('_id email username role').lean().exec();
-    }
-
-    async getUserById(id: string): Promise<UserType | null> {
-        const user = await this.userModel
-            .findById(id)
-            .select('_id email username role')
-            .lean()
-            .exec();
-        if (!user) {
-            throw new Error('This user was not found!');
-        }
-        return user;
-    }
-
-    async getOwnAccount(email: string): Promise<UserType | null> {
-        const ownAccount = await this.userModel
-            .findOne({ email })
-            .select('_id email username role')
-            .lean()
-            .exec();
-
-        if (!ownAccount) {
-            throw new Error('No such registered user!');
-        }
-
-        return ownAccount;
+    private comparePassword(password: string, hashedPassword: string) {
+        return bcrypt.compare(password, hashedPassword);
     }
 
     private checkIfUserIsAuthorised(
         requiredRole: UserRolesEnum,
-        currUser: UserType,
+        currUser: ResponseUserDTO,
     ): void {
         if (currUser.role !== requiredRole) {
             throw new HttpException(
