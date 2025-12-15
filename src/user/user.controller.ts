@@ -1,3 +1,4 @@
+import { GenericListResponseDTO } from './../shared/dtos/global.dto';
 import { AUTH_COOKIE_NAME } from '@crp-nest-app/shared';
 import { AuthService } from './auth.service';
 import {
@@ -52,9 +53,6 @@ export class UserController {
         const user = await this.authService.login(email, password);
 
         if (!user) return null;
-
-        console.log({ user });
-
         const token = this.authService.generateToken(user);
         this.addTokenToCookie(token, res);
         return user;
@@ -68,7 +66,9 @@ export class UserController {
 
     @Get('accounts')
     @UseGuards(AuthGuard)
-    async getAll(@Query() query: GetUserQueryDto): Promise<ResponseUserDTO[]> {
+    async getAll(
+        @Query() query: GetUserQueryDto,
+    ): Promise<GenericListResponseDTO<ResponseUserDTO>> {
         return await this.authService.getAllUsers(query);
     }
 
@@ -106,8 +106,6 @@ export class UserController {
     async getOwnAccont(
         @User('id') id: string,
     ): Promise<ResponseUserDTO | null> {
-        console.log({ id });
-
         return await this.authService.getUserById(id);
     }
 

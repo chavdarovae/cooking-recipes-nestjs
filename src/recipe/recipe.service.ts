@@ -12,6 +12,8 @@ import { CreateRecipeDto } from './dtos/createRecipe.dto';
 import { UpdateRecipeDto } from './dtos/updateRecipe.dto';
 import { ResponseRecipeDto } from './dtos/responseRecipe.dto';
 import { RecipeMapper } from './recipe.mapper';
+import { log } from 'console';
+import { GenericListResponseDTO } from '@crp-nest-app/shared';
 
 @Injectable()
 export class RecipeService {
@@ -26,7 +28,7 @@ export class RecipeService {
 
     async getAllRecipes(
         query?: GetRecipesQueryDto,
-    ): Promise<ResponseRecipeDto[]> {
+    ): Promise<GenericListResponseDTO<ResponseRecipeDto>> {
         const {
             search,
             page = 1,
@@ -68,7 +70,7 @@ export class RecipeService {
             .lean()
             .exec();
 
-        return recipes ? RecipeMapper.toResponseList(recipes) : [];
+        return RecipeMapper.toResponseList(recipes);
     }
 
     async getRecipeById(id: string): Promise<ResponseRecipeDto | null> {

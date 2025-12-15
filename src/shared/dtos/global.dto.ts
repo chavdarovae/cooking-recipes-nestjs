@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class PaginationAndSortingQueryDto {
+export class GenericMetaDataRequestDTO {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
@@ -15,20 +15,25 @@ export class PaginationAndSortingQueryDto {
     @IsOptional()
     @IsString()
     sort?: string;
+
+    @IsOptional()
+    @IsString()
+    filter?: string;
 }
 
-export class PagableResponseDto<T> {
-    data: T[];
+export class GenericMetaResponseDTO {
+    constructor(
+        public page: number = 1,
+        public entitiesPerPage: number = 50,
+        public total: number = 0,
+        public sort?: string,
+        public filter?: string,
+    ) {}
+}
 
-    @Type(() => Number)
-    @IsNumber()
-    page: number;
-
-    @Type(() => Number)
-    @IsNumber()
-    entitiesPerPage?: number;
-
-    @Type(() => Number)
-    @IsNumber()
-    total: string;
+export class GenericListResponseDTO<T> {
+    constructor(
+        public data: T[],
+        public metaData: GenericMetaResponseDTO = new GenericMetaResponseDTO(),
+    ) {}
 }

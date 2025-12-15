@@ -6,7 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from '@crp-nest-app/user';
 import { AuthMiddleware } from './user/middleware/auth.middleware';
-import { SharedUtilService } from './shared';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
     imports: [
@@ -18,11 +18,12 @@ import { SharedUtilService } from './shared';
                 `${process.env.DB_NAME}?retryWrites=true&w=majority`,
             { autoIndex: false },
         ),
+        SharedModule,
         UserModule,
         RecipeModule,
     ],
     controllers: [AppController],
-    providers: [AppService, SharedUtilService],
+    providers: [AppService],
 })
 export class AppModule {
     // global middleware, that is why it is includede in the app module

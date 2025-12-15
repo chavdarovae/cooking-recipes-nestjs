@@ -18,6 +18,7 @@ import { AuthGuard } from 'src/user/guards/user.guard';
 import { CreateRecipeDto } from './dtos/createRecipe.dto';
 import { UpdateRecipeDto } from './dtos/updateRecipe.dto';
 import { ResponseRecipeDto } from './dtos/responseRecipe.dto';
+import { GenericListResponseDTO } from '@crp-nest-app/shared';
 
 @Controller('/api/recipes')
 export class RecipeController {
@@ -26,7 +27,7 @@ export class RecipeController {
     @Get()
     async getAll(
         @Query() query: GetRecipesQueryDto,
-    ): Promise<ResponseRecipeDto[]> {
+    ): Promise<GenericListResponseDTO<ResponseRecipeDto>> {
         return this.recipeService.getAllRecipes(query);
     }
 

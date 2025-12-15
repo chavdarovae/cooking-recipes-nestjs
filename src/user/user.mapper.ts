@@ -1,4 +1,8 @@
-import { MongoMapper } from '@crp-nest-app/shared';
+import {
+    GenericListResponseDTO,
+    GenericMetaResponseDTO,
+    MongoMapper,
+} from '@crp-nest-app/shared';
 import { ResponseUserDTO } from './dtos/responseUser.dto';
 
 export class UserMapper extends MongoMapper {
@@ -13,7 +17,13 @@ export class UserMapper extends MongoMapper {
         };
     }
 
-    static toResponseList(users: any[]): ResponseUserDTO[] {
-        return users.map((user) => this.toResponse(user));
+    static toResponseList(
+        users?: any[],
+        metaData?: GenericMetaResponseDTO,
+    ): GenericListResponseDTO<ResponseUserDTO> {
+        const plainUsers: ResponseUserDTO[] | undefined = users?.map(
+            (recipe: any) => this.toResponse(recipe),
+        );
+        return this.mapEntityList(plainUsers, metaData);
     }
 }

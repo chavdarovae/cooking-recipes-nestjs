@@ -1,4 +1,8 @@
 import { Types } from 'mongoose';
+import {
+    GenericMetaResponseDTO,
+    GenericListResponseDTO,
+} from '../dtos/global.dto';
 
 export abstract class MongoMapper {
     protected static mapId<T extends Record<string, any> & { _id?: any }>(
@@ -24,9 +28,10 @@ export abstract class MongoMapper {
         return owner instanceof Types.ObjectId ? owner.toString() : owner;
     }
 
-    protected static mapManyDocs<T extends { _id?: any }>(
-        docs: T[],
-    ): (Omit<T, '_id'> & { id: string })[] {
-        return docs.map((doc: T) => this.mapId(doc));
+    protected static mapEntityList<T>(
+        entiyList: T[] = [],
+        metaData?: GenericMetaResponseDTO,
+    ): GenericListResponseDTO<T> {
+        return new GenericListResponseDTO<T>(entiyList, metaData);
     }
 }
