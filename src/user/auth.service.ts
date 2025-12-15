@@ -1,3 +1,4 @@
+import { SharedUtilService } from './../shared/utils/shared-util.service';
 import {
     BadRequestException,
     HttpException,
@@ -28,6 +29,7 @@ export class AuthService {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         private jwtService: JwtService,
+        private sharedUtilService: SharedUtilService,
     ) {}
 
     async register(
@@ -163,7 +165,10 @@ export class AuthService {
         createDto: CreateUserDTO,
         currUser: ResponseUserDTO,
     ): Promise<ResponseUserDTO> {
-        this.checkIfUserIsAuthorised(UserRolesEnum.ADMIN, currUser);
+        this.sharedUtilService.checkIfUserIsAuthorised(
+            UserRolesEnum.ADMIN,
+            currUser,
+        );
 
         const { username, email, role, password } = createDto;
 
@@ -190,7 +195,10 @@ export class AuthService {
         updateDto: UpdateUserDTO,
         currUser: ResponseUserDTO,
     ): Promise<ResponseUserDTO | null> {
-        this.checkIfUserIsAuthorised(UserRolesEnum.ADMIN, currUser);
+        this.sharedUtilService.checkIfUserIsAuthorised(
+            UserRolesEnum.ADMIN,
+            currUser,
+        );
 
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid user id');
@@ -209,7 +217,10 @@ export class AuthService {
     }
 
     async deleteUser(id: string, currUser: ResponseUserDTO): Promise<null> {
-        this.checkIfUserIsAuthorised(UserRolesEnum.ADMIN, currUser);
+        this.sharedUtilService.checkIfUserIsAuthorised(
+            UserRolesEnum.ADMIN,
+            currUser,
+        );
 
         const userToDelete = await this.userModel.findByIdAndDelete(id);
 
@@ -234,23 +245,7 @@ export class AuthService {
         });
     }
 
-    verifyToken(token: string) {
-        return this.jwtService.verify(token);
-    }
-
     private comparePassword(password: string, hashedPassword: string) {
         return bcrypt.compare(password, hashedPassword);
-    }
-
-    private checkIfUserIsAuthorised(
-        requiredRole: UserRolesEnum,
-        currUser: ResponseUserDTO,
-    ): void {
-        if (currUser.role !== requiredRole) {
-            throw new HttpException(
-                'User is not authorised to modify this entity!',
-                HttpStatus.UNAUTHORIZED,
-            );
-        }
     }
 }

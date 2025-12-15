@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { UserRolesEnum } from '../shared/user.enum';
+import { UserRolesEnum } from '../shared/enums/user.enum';
 import * as bcrypt from 'bcryptjs';
 import { SALT_ROUNDS } from '@crp-nest-app/shared';
 import { Document } from 'mongoose';
