@@ -109,6 +109,7 @@ export class RecipeService {
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid recipe id');
         }
+
         const recipe = await this.recipeModel
             .findByIdAndUpdate(id, updateRecipeDto, { new: true })
             .select(RecipeService.RESPONSE_FIELDS)
@@ -125,6 +126,7 @@ export class RecipeService {
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid recipe id');
         }
+
         const result = await this.recipeModel.findByIdAndDelete(id).exec();
 
         if (!result) {

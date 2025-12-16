@@ -117,16 +117,18 @@ export class UserController {
     private addTokenToCookie(token: string, res: Response) {
         res.cookie(AUTH_COOKIE_NAME, token, {
             httpOnly: true,
-            sameSite: 'none', // should not be null
-            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'none',
+            secure: true,
+            path: '/',
+            maxAge: 1000 * 60 * 60 * 24,
         });
     }
 
     private clearAuthCookie(res: Response) {
         res.clearCookie(AUTH_COOKIE_NAME, {
             httpOnly: true,
-            sameSite: 'none', // should not be null
-            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'none',
+            secure: true,
             path: '/',
         });
     }

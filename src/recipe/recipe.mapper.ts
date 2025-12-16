@@ -10,7 +10,7 @@ export class RecipeMapper extends MongoMapper {
     static toResponse(reicpe: Recipe): ResponseRecipeDto {
         return {
             ...this.mapId(reicpe),
-            owner: this.mapOwner(reicpe),
+            owner: this.mapOwner(reicpe.owner),
         } as any as ResponseRecipeDto;
     }
 

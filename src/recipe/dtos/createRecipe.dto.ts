@@ -7,7 +7,7 @@ export class CreateRecipeDto implements Partial<Recipe> {
     title: string;
 
     @IsString()
-    @Length(10, 100)
+    @Length(10, 600)
     ingredients: string;
 
     @IsString()
