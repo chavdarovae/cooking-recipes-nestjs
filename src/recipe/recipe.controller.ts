@@ -49,7 +49,7 @@ export class RecipeController {
     @UseGuards(AuthGuard)
     @UsePipes(new ValidationPipe())
     async updateRecipe(
-        @Param() id: string,
+        @Param('id') id: string,
         @Body() updateDto: UpdateRecipeDto,
     ): Promise<ResponseRecipeDto> {
         return this.recipeService.updateRecipe(id, updateDto);
@@ -57,7 +57,7 @@ export class RecipeController {
 
     @Delete(':id')
     @UseGuards(AuthGuard)
-    async deleteRecipe(@Param() id: string): Promise<null> {
+    async deleteRecipe(@Param('id') id: string): Promise<null> {
         return this.recipeService.deleteRecipe(id);
     }
 }

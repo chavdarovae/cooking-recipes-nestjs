@@ -32,7 +32,14 @@ export class RecipeService {
     async getAllRecipes(
         query?: GetRecipesQueryDto,
     ): Promise<GenericListResponseDTO<ResponseRecipeDto>> {
-        const { search, page = 1, pageSize = 20, sort, ...rest } = query || {};
+        const {
+            search,
+            page = 1,
+            pageSize = 20,
+            sort,
+            owner,
+            ...rest
+        } = query || {};
 
         const safeLimit = Math.min(
             pageSize,
@@ -45,6 +52,10 @@ export class RecipeService {
         if (search) {
             const regex = { $regex: search, $options: 'i' };
             mongoQuery.$or = [{ title: regex }, { description: regex }];
+        }
+
+        if (owner && Types.ObjectId.isValid(owner)) {
+            mongoQuery.owner = new Types.ObjectId(owner);
         }
 
         let sortQuery;
