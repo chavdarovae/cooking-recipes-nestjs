@@ -60,4 +60,10 @@ export class RecipeController {
     async deleteRecipe(@Param('id') id: string): Promise<null> {
         return this.recipeService.deleteRecipe(id);
     }
+
+    @Get(':id/recommend')
+    @UseGuards(AuthGuard)
+    async recommendRecipe(@Param('id') id: string): Promise<any> {
+        return this.recipeService.recommendRecipe(id);
+    }
 }

@@ -1,7 +1,6 @@
 import {
     BadRequestException,
     Injectable,
-    InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,7 +11,6 @@ import { CreateRecipeDto } from './dtos/createRecipe.dto';
 import { UpdateRecipeDto } from './dtos/updateRecipe.dto';
 import { ResponseRecipeDto } from './dtos/responseRecipe.dto';
 import { RecipeMapper } from './recipe.mapper';
-import { log } from 'console';
 import {
     GenericListResponseDTO,
     GenericMetaResponseDTO,
@@ -144,5 +142,24 @@ export class RecipeService {
             throw new NotFoundException('Recipe not found');
         }
         return null;
+    }
+
+    async recommendRecipe(id: string): Promise<string> {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid recipe id');
+        }
+
+        const result = await this.recipeModel.findByIdAndUpdate(
+            id,
+            {
+                $push: {
+                    recommendList: {
+                        id,
+                    },
+                },
+            },
+            { new: true },
+        );
+        return 'Recommended!';
     }
 }
