@@ -33,7 +33,7 @@ export class RecipeService {
         const {
             search,
             page = 1,
-            pageSize = 20,
+            pageSize = 50,
             sort,
             owner,
             ...rest
@@ -106,8 +106,12 @@ export class RecipeService {
 
     async createRecipe(
         createRecipeDto: CreateRecipeDto,
+        ownerId: string,
     ): Promise<ResponseRecipeDto> {
-        const recipe = await this.recipeModel.create(createRecipeDto);
+        const recipe = await this.recipeModel.create({
+            ...createRecipeDto,
+            owner: new Types.ObjectId(ownerId),
+        });
         return RecipeMapper.toResponse(recipe.toObject());
     }
 
@@ -126,7 +130,7 @@ export class RecipeService {
             .exec();
 
         if (!recipe) {
-            throw new NotFoundException('Recipe not found');
+            throw new NotFoundException('Recipe could not be updated');
         }
         return RecipeMapper.toResponse(recipe);
     }
@@ -139,27 +143,40 @@ export class RecipeService {
         const result = await this.recipeModel.findByIdAndDelete(id).exec();
 
         if (!result) {
-            throw new NotFoundException('Recipe not found');
+            throw new NotFoundException('Recipe could not be deleted');
         }
         return null;
     }
 
-    async recommendRecipe(id: string): Promise<string> {
-        if (!Types.ObjectId.isValid(id)) {
+    async recommendRecipe(
+        recipeId: string,
+        recommanderId: string,
+    ): Promise<ResponseRecipeDto> {
+        if (!Types.ObjectId.isValid(recipeId)) {
             throw new BadRequestException('Invalid recipe id');
         }
 
-        const result = await this.recipeModel.findByIdAndUpdate(
-            id,
-            {
-                $push: {
-                    recommendList: {
-                        id,
+        if (!Types.ObjectId.isValid(recommanderId)) {
+            throw new BadRequestException('Invalid recommander id');
+        }
+
+        const recipe = await this.recipeModel
+            .findByIdAndUpdate(
+                recipeId,
+                {
+                    $push: {
+                        recommendList: new Types.ObjectId(recommanderId),
                     },
                 },
-            },
-            { new: true },
-        );
-        return 'Recommended!';
+                { new: true },
+            )
+            .select(RecipeService.RESPONSE_FIELDS)
+            .lean()
+            .exec();
+
+        if (!recipe) {
+            throw new NotFoundException('Recipe could not be recommanded');
+        }
+        return RecipeMapper.toResponse(recipe);
     }
 }

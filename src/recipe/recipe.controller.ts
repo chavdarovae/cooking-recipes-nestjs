@@ -19,6 +19,7 @@ import { CreateRecipeDto } from './dtos/createRecipe.dto';
 import { UpdateRecipeDto } from './dtos/updateRecipe.dto';
 import { ResponseRecipeDto } from './dtos/responseRecipe.dto';
 import { GenericListResponseDTO } from '@crp-nest-app/shared';
+import { User } from 'src/user/decorators/user.decorator';
 
 @Controller('/api/recipes')
 export class RecipeController {
@@ -41,8 +42,9 @@ export class RecipeController {
     @UsePipes(new ValidationPipe())
     async createRecipe(
         @Body() createDto: CreateRecipeDto,
+        @User('id') currUserId: string,
     ): Promise<ResponseRecipeDto> {
-        return this.recipeService.createRecipe(createDto);
+        return this.recipeService.createRecipe(createDto, currUserId);
     }
 
     @Put(':id')
@@ -63,7 +65,10 @@ export class RecipeController {
 
     @Get(':id/recommend')
     @UseGuards(AuthGuard)
-    async recommendRecipe(@Param('id') id: string): Promise<any> {
-        return this.recipeService.recommendRecipe(id);
+    async recommendRecipe(
+        @Param('id') recipeId: string,
+        @User('id') currUserId: string,
+    ): Promise<any> {
+        return this.recipeService.recommendRecipe(recipeId, currUserId);
     }
 }

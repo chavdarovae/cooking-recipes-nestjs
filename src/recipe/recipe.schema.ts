@@ -20,10 +20,10 @@ export class Recipe {
     @Prop()
     image: string;
 
-    @Prop()
-    recommendList: Types.ObjectId;
+    @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+    recommendList: Types.ObjectId[];
 
-    @Prop()
+    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
     owner: Types.ObjectId;
 }
 
