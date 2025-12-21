@@ -200,6 +200,10 @@ export class AuthService {
             role,
         });
 
+        if (!user) {
+            throw new NotFoundException('User could not be created');
+        }
+
         return UserMapper.toResponse(user.toObject());
     }
 
@@ -223,7 +227,7 @@ export class AuthService {
             .exec();
 
         if (!userToUpdate) {
-            throw new NotFoundException('User not found!');
+            throw new NotFoundException('User could not be updated');
         }
 
         return UserMapper.toResponse(userToUpdate);
@@ -238,7 +242,7 @@ export class AuthService {
         const userToDelete = await this.userModel.findByIdAndDelete(id);
 
         if (!userToDelete) {
-            throw new NotFoundException('User not found!');
+            throw new NotFoundException('User could not be deleted');
         }
 
         return null;

@@ -94,6 +94,10 @@ export class RecipeService {
         const recipe = await this.recipeModel
             .findById(id)
             .select(RecipeService.RESPONSE_FIELDS)
+            .populate({
+                path: 'owner',
+                select: 'username email',
+            })
             .lean()
             .exec();
 
