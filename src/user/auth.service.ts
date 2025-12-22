@@ -210,12 +210,14 @@ export class AuthService {
     async updateUser(
         id: string,
         updateDto: UpdateUserDTO,
-        currUser: ResponseUserDTO,
+        currUser?: ResponseUserDTO,
     ): Promise<ResponseUserDTO | null> {
-        this.sharedUtilService.checkIfUserIsAuthorised(
-            UserRolesEnum.ADMIN,
-            currUser,
-        );
+        if (currUser) {
+            this.sharedUtilService.checkIfUserIsAuthorised(
+                UserRolesEnum.ADMIN,
+                currUser,
+            );
+        }
 
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid user id');

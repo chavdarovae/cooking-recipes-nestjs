@@ -109,6 +109,15 @@ export class UserController {
         return await this.authService.getUserById(id);
     }
 
+    @Put('ownAccount')
+    @UsePipes(new ValidationPipe())
+    async updateOwnUser(
+        @Body() updateDto: UpdateUserDTO,
+        @User('id') currUserId: string,
+    ): Promise<ResponseUserDTO | null> {
+        return await this.authService.updateUser(currUserId, updateDto);
+    }
+
     @Get(':id')
     async getById(@Param('id') id: string): Promise<ResponseUserDTO | null> {
         return await this.authService.getUserById(id);

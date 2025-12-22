@@ -17,7 +17,6 @@ export abstract class MongoMapper {
     }
 
     protected static mapOwner(owner: any): string {
-        console.log({ owner });
         if (!owner) return '';
 
         if (typeof owner === 'object' && owner._id) {
