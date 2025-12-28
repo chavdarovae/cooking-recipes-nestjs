@@ -19,12 +19,12 @@ async function migrate() {
     const Recipe = (await import('mongoose')).model('Recipe', RecipeSchema);
 
     const recipes = await Recipe.find({
-        recommendedList: { $exists: true, $not: { $type: 'array' } },
+        recommendList: { $exists: true, $not: { $type: 'array' } },
     });
 
     for (const recipe of recipes) {
-        recipe.recommendedList = recipe.recommendedList
-            ? [...recipe.recommendedList]
+        recipe.recommendList = recipe.recommendList
+            ? [...recipe.recommendList]
             : [];
         await recipe.save();
     }

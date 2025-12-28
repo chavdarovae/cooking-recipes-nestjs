@@ -23,6 +23,7 @@ import { AuthGuard } from './guards/user.guard';
 import { UpdateUserDTO } from './dtos/updateUser.dto';
 import { GetUserQueryDto } from './dtos/userSearchQuery.dto';
 import { ResponseUserDTO } from './dtos/responseUser.dto';
+import { AdminGuard } from './guards/admin.guard';
 
 @Controller('api/users')
 export class UserController {
@@ -65,7 +66,7 @@ export class UserController {
     }
 
     @Get('accounts')
-    @UseGuards(AuthGuard)
+    @UseGuards(AdminGuard)
     async getAll(
         @Query() query: GetUserQueryDto,
     ): Promise<GenericListResponseDTO<ResponseUserDTO>> {
@@ -73,7 +74,7 @@ export class UserController {
     }
 
     @Post('accounts')
-    @UseGuards(AuthGuard)
+    @UseGuards(AdminGuard)
     @UsePipes(new ValidationPipe())
     async createUser(
         @Body() createDto: CreateUserDTO,
@@ -83,7 +84,7 @@ export class UserController {
     }
 
     @Put('accounts/:id')
-    @UseGuards(AuthGuard)
+    @UseGuards(AdminGuard)
     @UsePipes(new ValidationPipe())
     async updateUser(
         @Param('id') id: string,
@@ -94,7 +95,7 @@ export class UserController {
     }
 
     @Delete('accounts/:id')
-    @UseGuards(AuthGuard)
+    @UseGuards(AdminGuard)
     async deleteUser(
         @Param('id') id: string,
         @User() currUser: ResponseUserDTO,
@@ -110,6 +111,7 @@ export class UserController {
     }
 
     @Put('ownAccount')
+    @UseGuards(AuthGuard)
     @UsePipes(new ValidationPipe())
     async updateOwnUser(
         @Body() updateDto: UpdateUserDTO,

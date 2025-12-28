@@ -1,8 +1,7 @@
 import {
     CanActivate,
     ExecutionContext,
-    HttpException,
-    HttpStatus,
+    ForbiddenException,
     Injectable,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
@@ -17,9 +16,6 @@ export class AuthGuard implements CanActivate {
         if (request.user) {
             return true;
         }
-        throw new HttpException(
-            'User is not authorised',
-            HttpStatus.UNAUTHORIZED,
-        );
+        throw new ForbiddenException();
     }
 }

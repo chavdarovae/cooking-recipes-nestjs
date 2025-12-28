@@ -1,6 +1,8 @@
 import {
     BadRequestException,
+    ForbiddenException,
     Injectable,
+    InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -14,7 +16,9 @@ import { RecipeMapper } from './recipe.mapper';
 import {
     GenericListResponseDTO,
     GenericMetaResponseDTO,
+    UserRolesEnum,
 } from '@crp-nest-app/shared';
+import { ResponseUserDTO } from '@crp-nest-app/user';
 
 @Injectable()
 export class RecipeService {
@@ -67,7 +71,7 @@ export class RecipeService {
                 : { [sort]: 1 };
         }
 
-        const recipes = await this.recipeModel
+        let recipes = await this.recipeModel
             .find(mongoQuery)
             .select(RecipeService.RESPONSE_FIELDS)
             .sort(sortQuery)
@@ -75,6 +79,10 @@ export class RecipeService {
             .limit(safeLimit)
             .lean()
             .exec();
+
+        if (!recipes) {
+            throw new NotFoundException('Recipes could not be fetched!');
+        }
 
         const recipesCount = await this.recipeModel.countDocuments(mongoQuery);
 
@@ -91,6 +99,7 @@ export class RecipeService {
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid recipe id');
         }
+
         const recipe = await this.recipeModel
             .findById(id)
             .select(RecipeService.RESPONSE_FIELDS)
@@ -116,16 +125,23 @@ export class RecipeService {
             ...createRecipeDto,
             owner: new Types.ObjectId(ownerId),
         });
+
+        if (!recipe) {
+            throw new NotFoundException('Recipe could not be created!');
+        }
+
         return RecipeMapper.toResponse(recipe.toObject());
     }
 
     async updateRecipe(
         id: string,
         updateRecipeDto: UpdateRecipeDto,
+        currUser: ResponseUserDTO,
     ): Promise<ResponseRecipeDto> {
-        if (!Types.ObjectId.isValid(id)) {
-            throw new BadRequestException('Invalid recipe id');
-        }
+        const recipeToUpdate = await this.ensureRecipeExistsAndAuthorized(
+            id,
+            currUser,
+        );
 
         const recipe = await this.recipeModel
             .findByIdAndUpdate(id, updateRecipeDto, { new: true })
@@ -134,15 +150,16 @@ export class RecipeService {
             .exec();
 
         if (!recipe) {
-            throw new NotFoundException('Recipe could not be updated');
+            throw new NotFoundException('Recipe could not be updated!');
         }
         return RecipeMapper.toResponse(recipe);
     }
 
-    async deleteRecipe(id: string): Promise<null> {
-        if (!Types.ObjectId.isValid(id)) {
-            throw new BadRequestException('Invalid recipe id');
-        }
+    async deleteRecipe(id: string, currUser: ResponseUserDTO): Promise<null> {
+        const recipeToDelete = await this.ensureRecipeExistsAndAuthorized(
+            id,
+            currUser,
+        );
 
         const result = await this.recipeModel.findByIdAndDelete(id).exec();
 
@@ -156,9 +173,8 @@ export class RecipeService {
         recipeId: string,
         recommanderId: string,
     ): Promise<ResponseRecipeDto> {
-        if (!Types.ObjectId.isValid(recipeId)) {
-            throw new BadRequestException('Invalid recipe id');
-        }
+        const recipeToReccomend =
+            await this.ensureRecipeExistsAndAuthorized(recipeId);
 
         if (!Types.ObjectId.isValid(recommanderId)) {
             throw new BadRequestException('Invalid recommander id');
@@ -179,8 +195,30 @@ export class RecipeService {
             .exec();
 
         if (!recipe) {
-            throw new NotFoundException('Recipe could not be recommanded');
+            throw new NotFoundException('Recipe could not be recommanded!');
         }
         return RecipeMapper.toResponse(recipe);
+    }
+
+    private async ensureRecipeExistsAndAuthorized(
+        id: string,
+        currUser?: ResponseUserDTO,
+    ) {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid recipe id');
+        }
+
+        const recipe = await this.recipeModel.findById(id).exec();
+        if (!recipe) {
+            throw new NotFoundException('Recipe not found');
+        }
+
+        if (currUser && currUser.id !== recipe.owner.toString()) {
+            throw new ForbiddenException(
+                'Insurficient credentials for this recipe',
+            );
+        }
+
+        return recipe;
     }
 }

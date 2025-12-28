@@ -1,10 +1,12 @@
 import { SharedUtilService } from './../shared/utils/shared-util.service';
 import {
     BadRequestException,
+    ForbiddenException,
     HttpException,
     HttpStatus,
     Injectable,
     NotFoundException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -69,7 +71,7 @@ export class AuthService {
             .exec();
 
         if (!userToLogin) {
-            throw new NotFoundException('Email not found!');
+            throw new UnauthorizedException('Invalid credentials');
         }
 
         const isPasswordCorrect = await this.comparePassword(
@@ -80,7 +82,7 @@ export class AuthService {
         if (!isPasswordCorrect) {
             throw new HttpException(
                 'Password is not valid!',
-                HttpStatus.UNPROCESSABLE_ENTITY,
+                HttpStatus.UNAUTHORIZED,
             );
         }
 
@@ -137,15 +139,8 @@ export class AuthService {
     }
 
     async getUserById(id: string): Promise<ResponseUserDTO> {
-        if (id === null) {
-            throw new HttpException(
-                'User has no valid credentials',
-                HttpStatus.UNAUTHORIZED,
-            );
-        }
-
         if (!Types.ObjectId.isValid(id)) {
-            // throw new BadRequestException('Invalid user id');
+            throw new BadRequestException('Invalid user id');
         }
 
         const user = await this.userModel
@@ -178,11 +173,6 @@ export class AuthService {
         createDto: CreateUserDTO,
         currUser: ResponseUserDTO,
     ): Promise<ResponseUserDTO> {
-        this.sharedUtilService.checkIfUserIsAuthorised(
-            UserRolesEnum.ADMIN,
-            currUser,
-        );
-
         const { username, email, role, password } = createDto;
 
         const existingUsername = await this.userModel.findOne({ username });
@@ -212,39 +202,33 @@ export class AuthService {
         updateDto: UpdateUserDTO,
         currUser?: ResponseUserDTO,
     ): Promise<ResponseUserDTO | null> {
-        if (currUser) {
-            this.sharedUtilService.checkIfUserIsAuthorised(
-                UserRolesEnum.ADMIN,
-                currUser,
-            );
-        }
+        const userToDelete = await this.ensureUserExistsAndAuthorized(
+            id,
+            currUser,
+        );
 
-        if (!Types.ObjectId.isValid(id)) {
-            throw new BadRequestException('Invalid user id');
-        }
-
-        const userToUpdate = await this.userModel
+        const updatedUser = await this.userModel
             .findByIdAndUpdate(id, updateDto, { new: true })
             .lean()
             .exec();
 
-        if (!userToUpdate) {
-            throw new NotFoundException('User could not be updated');
+        if (!updatedUser) {
+            throw new NotFoundException('User could not be updated!');
         }
 
-        return UserMapper.toResponse(userToUpdate);
+        return UserMapper.toResponse(updatedUser);
     }
 
     async deleteUser(id: string, currUser: ResponseUserDTO): Promise<null> {
-        this.sharedUtilService.checkIfUserIsAuthorised(
-            UserRolesEnum.ADMIN,
+        const userToDelete = await this.ensureUserExistsAndAuthorized(
+            id,
             currUser,
         );
 
-        const userToDelete = await this.userModel.findByIdAndDelete(id);
+        const deletedUser = await this.userModel.findByIdAndDelete(id);
 
-        if (!userToDelete) {
-            throw new NotFoundException('User could not be deleted');
+        if (!deletedUser) {
+            throw new NotFoundException('User could not be deleted!');
         }
 
         return null;
@@ -266,5 +250,27 @@ export class AuthService {
 
     private comparePassword(password: string, hashedPassword: string) {
         return bcrypt.compare(password, hashedPassword);
+    }
+
+    private async ensureUserExistsAndAuthorized(
+        id: string,
+        currUser?: ResponseUserDTO,
+    ) {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid user id');
+        }
+
+        const user = await this.userModel.findById(id).exec();
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        if (currUser && currUser.role !== UserRolesEnum.ADMIN) {
+            throw new ForbiddenException(
+                'Insurficient credentials for this user',
+            );
+        }
+
+        return user;
     }
 }

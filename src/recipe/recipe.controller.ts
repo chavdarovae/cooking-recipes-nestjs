@@ -20,6 +20,7 @@ import { UpdateRecipeDto } from './dtos/updateRecipe.dto';
 import { ResponseRecipeDto } from './dtos/responseRecipe.dto';
 import { GenericListResponseDTO } from '@crp-nest-app/shared';
 import { User } from 'src/user/decorators/user.decorator';
+import { ResponseUserDTO } from '@crp-nest-app/user';
 
 @Controller('/api/recipes')
 export class RecipeController {
@@ -53,14 +54,18 @@ export class RecipeController {
     async updateRecipe(
         @Param('id') id: string,
         @Body() updateDto: UpdateRecipeDto,
+        @User() currUser: ResponseUserDTO,
     ): Promise<ResponseRecipeDto> {
-        return this.recipeService.updateRecipe(id, updateDto);
+        return this.recipeService.updateRecipe(id, updateDto, currUser);
     }
 
     @Delete(':id')
     @UseGuards(AuthGuard)
-    async deleteRecipe(@Param('id') id: string): Promise<null> {
-        return this.recipeService.deleteRecipe(id);
+    async deleteRecipe(
+        @Param('id') id: string,
+        @User() currUser: ResponseUserDTO,
+    ): Promise<null> {
+        return this.recipeService.deleteRecipe(id, currUser);
     }
 
     @Get(':id/recommend')
