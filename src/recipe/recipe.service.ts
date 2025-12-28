@@ -2,7 +2,6 @@ import {
     BadRequestException,
     ForbiddenException,
     Injectable,
-    InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -16,7 +15,6 @@ import { RecipeMapper } from './recipe.mapper';
 import {
     GenericListResponseDTO,
     GenericMetaResponseDTO,
-    UserRolesEnum,
 } from '@crp-nest-app/shared';
 import { ResponseUserDTO } from '@crp-nest-app/user';
 
@@ -195,7 +193,7 @@ export class RecipeService {
             .exec();
 
         if (!recipe) {
-            throw new NotFoundException('Recipe could not be recommanded!');
+            throw new NotFoundException('Recipe could not be recommended!');
         }
         return RecipeMapper.toResponse(recipe);
     }
@@ -215,7 +213,7 @@ export class RecipeService {
 
         if (currUser && currUser.id !== recipe.owner.toString()) {
             throw new ForbiddenException(
-                'Insurficient credentials for this recipe',
+                'Insufficient credentials for this recipe',
             );
         }
 

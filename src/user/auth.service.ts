@@ -1,4 +1,3 @@
-import { SharedUtilService } from './../shared/utils/shared-util.service';
 import {
     BadRequestException,
     ForbiddenException,
@@ -35,7 +34,6 @@ export class AuthService {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         private jwtService: JwtService,
-        private sharedUtilService: SharedUtilService,
     ) {}
 
     async register(
@@ -267,7 +265,7 @@ export class AuthService {
 
         if (currUser && currUser.role !== UserRolesEnum.ADMIN) {
             throw new ForbiddenException(
-                'Insurficient credentials for this user',
+                'Insufficient credentials for this user',
             );
         }
 
