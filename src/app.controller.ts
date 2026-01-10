@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from '../.github/workflows/app.service';
+import { AppService } from './app.service';
 
 @Controller('')
 export class AppController {
