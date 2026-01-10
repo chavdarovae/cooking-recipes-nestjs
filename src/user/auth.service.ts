@@ -137,6 +137,13 @@ export class AuthService {
     }
 
     async getUserById(id: string): Promise<ResponseUserDTO> {
+        if (!id) {
+            throw new HttpException(
+                'Username is not authorized!',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
+
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid user id');
         }
