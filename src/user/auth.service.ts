@@ -145,7 +145,7 @@ export class AuthService {
         }
 
         if (!Types.ObjectId.isValid(id)) {
-            throw new BadRequestException('Invalid user id');
+            throw new NotFoundException('User not found!');
         }
 
         const user = await this.userModel

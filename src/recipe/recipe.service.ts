@@ -95,7 +95,7 @@ export class RecipeService {
 
     async getRecipeById(id: string): Promise<ResponseRecipeDto | null> {
         if (!Types.ObjectId.isValid(id)) {
-            throw new BadRequestException('Invalid recipe id');
+            throw new NotFoundException('Recipe not found!');
         }
 
         const recipe = await this.recipeModel
