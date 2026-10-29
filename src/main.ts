@@ -19,6 +19,7 @@ async function bootstrap() {
         'http://localhost:4200',
         'https://chavdarovae.github.io',
         'http://localhost:5173',
+        'https://cooking-recipes-reactjs.onrender.com',
     ];
 
     app.enableCors({
