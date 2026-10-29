@@ -18,6 +18,7 @@ async function bootstrap() {
     const allowedOrigins = [
         'http://localhost:4200',
         'https://chavdarovae.github.io',
+        'http://localhost:5173',
     ];
 
     app.enableCors({

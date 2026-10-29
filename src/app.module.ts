@@ -12,11 +12,13 @@ import { SharedModule } from './shared/shared.module';
     imports: [
         ConfigModule.forRoot(),
         MongooseModule.forRoot(
-            (process.env.DB_URL ||
+            process.env.DB_URL ||
                 process.env.DB_URL_LOCAL ||
-                'mongodb://localhost:27017') +
-                `${process.env.DB_NAME}?retryWrites=true&w=majority`,
-            { autoIndex: false },
+                'mongodb://localhost:27017',
+            {
+                dbName: process.env.DB_NAME,
+                autoIndex: false,
+            },
         ),
         SharedModule,
         UserModule,

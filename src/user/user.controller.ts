@@ -6,6 +6,8 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
+    HttpStatus,
     Param,
     Post,
     Put,
@@ -66,7 +68,7 @@ export class UserController {
     }
 
     @Get('accounts')
-    @UseGuards(AdminGuard)
+    // @UseGuards(AdminGuard)
     async getAll(
         @Query() query: GetUserQueryDto,
     ): Promise<GenericListResponseDTO<ResponseUserDTO>> {
@@ -96,11 +98,12 @@ export class UserController {
 
     @Delete('accounts/:id')
     @UseGuards(AdminGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
     async deleteUser(
         @Param('id') id: string,
         @User() currUser: ResponseUserDTO,
-    ): Promise<ResponseUserDTO | null> {
-        return await this.authService.deleteUser(id, currUser);
+    ): Promise<void> {
+        await this.authService.deleteUser(id, currUser);
     }
 
     @Get('ownAccount')
