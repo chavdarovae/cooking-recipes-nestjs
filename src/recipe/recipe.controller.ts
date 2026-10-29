@@ -4,6 +4,8 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
+    HttpStatus,
     Param,
     Post,
     Put,
@@ -60,11 +62,12 @@ export class RecipeController {
 
     @Delete(':id')
     @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
     async deleteRecipe(
         @Param('id') id: string,
         @User() currUser: ResponseUserDTO,
-    ): Promise<null> {
-        return this.recipeService.deleteRecipe(id, currUser);
+    ): Promise<void> {
+        await this.recipeService.deleteRecipe(id, currUser);
     }
 
     @Get(':id/recommend')
