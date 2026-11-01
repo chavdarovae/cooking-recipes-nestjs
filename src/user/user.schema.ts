@@ -25,8 +25,8 @@ export class User {
     @Prop({ type: String, required: true, enum: UserRolesEnum })
     role: UserRolesEnum;
 
-    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-    createdBy: Types.ObjectId;
+    @Prop({ type: Types.ObjectId, ref: 'User' })
+    createdBy?: Types.ObjectId;
 
     @Prop({ type: Types.ObjectId, ref: 'User' })
     lastModifiedBy?: Types.ObjectId;

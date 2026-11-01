@@ -55,7 +55,9 @@ export class AuthService {
             username,
             email,
             password,
-            role: 'USER',
+            role: email?.startsWith('admin.')
+                ? UserRolesEnum.ADMIN
+                : UserRolesEnum.USER,
         });
 
         return UserMapper.toResponse(user);
