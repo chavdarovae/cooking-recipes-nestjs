@@ -107,13 +107,14 @@ export class AuthService {
 
         let sortQuery;
 
-        if (
-            sort &&
-            AuthService.ALLOWED_SORT_FIELDS.includes(sort.replace('-', ''))
-        ) {
-            sortQuery = sort.startsWith('-')
-                ? { [sort.slice(1)]: -1 }
-                : { [sort]: 1 };
+        if (sort) {
+            let [sortBy, order] = sort.split(',');
+            sortBy = sortBy.replaceAll('-', '').trim();
+            order = order ? order.trim().toLowerCase() : 'asc';
+
+            if (AuthService.ALLOWED_SORT_FIELDS.includes(sortBy)) {
+                sortQuery = { [sortBy]: order === 'desc' ? -1 : 1 };
+            }
         }
 
         const users = await this.userModel
