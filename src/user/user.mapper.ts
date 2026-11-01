@@ -11,9 +11,9 @@ export class UserMapper extends MongoMapper {
 
         return {
             id: mapped.id,
-            username: mapped.username,
-            email: mapped.email,
-            role: mapped.role,
+            username: user.username,
+            email: user.email,
+            role: user.role,
         };
     }
 
