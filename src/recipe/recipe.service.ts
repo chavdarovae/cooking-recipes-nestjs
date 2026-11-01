@@ -60,13 +60,14 @@ export class RecipeService {
 
         let sortQuery;
 
-        if (
-            sort &&
-            RecipeService.ALLOWED_SORT_FIELDS.includes(sort.replace('-', ''))
-        ) {
-            sortQuery = sort.startsWith('-')
-                ? { [sort.slice(1)]: -1 }
-                : { [sort]: 1 };
+        if (sort) {
+            let [sortBy, order] = sort.split(',');
+            sortBy = sortBy.replaceAll('-', '').trim();
+            order = order ? order.trim().toLowerCase() : 'asc';
+
+            if (RecipeService.ALLOWED_SORT_FIELDS.includes(sortBy)) {
+                sortQuery = { [sortBy]: order === 'desc' ? -1 : 1 };
+            }
         }
 
         let recipes = await this.recipeModel
