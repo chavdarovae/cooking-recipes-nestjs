@@ -189,11 +189,15 @@ export class AuthService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
+        const createdBy = new Types.ObjectId(currUser.id);
+
         const user = await this.userModel.create({
             username,
             email,
             password,
             role,
+            createdBy,
+            lastModifiedBy: createdBy,
         });
 
         if (!user) {
@@ -205,18 +209,27 @@ export class AuthService {
 
     async updateUser(
         id: string,
-        updateDto: UpdateUserDTO,
+        updateUserDto: UpdateUserDTO,
         currUser?: ResponseUserDTO,
     ): Promise<ResponseUserDTO | null> {
-        const userToDelete = await this.ensureUserExistsAndAuthorized(
+        const userToUpdate = await this.ensureUserExistsAndAuthorized(
             id,
             currUser,
         );
+        const updateUserData: any = { ...updateUserDto };
+
+        if (currUser) {
+            updateUserData.lastModifiedBy = new Types.ObjectId(currUser.id);
+        }
 
         const updatedUser = await this.userModel
-            .findByIdAndUpdate(id, updateDto, { new: true })
+            .findByIdAndUpdate(id, updateUserData, { new: true })
             .lean()
             .exec();
+
+        if (!updatedUser) {
+            throw new NotFoundException('User could not be updated!');
+        }
 
         if (!updatedUser) {
             throw new NotFoundException('User could not be updated!');

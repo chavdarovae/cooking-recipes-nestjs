@@ -120,9 +120,12 @@ export class RecipeService {
         createRecipeDto: CreateRecipeDto,
         ownerId: string,
     ): Promise<ResponseRecipeDto> {
+        const createdBy = new Types.ObjectId(ownerId);
         const recipe = await this.recipeModel.create({
             ...createRecipeDto,
             owner: new Types.ObjectId(ownerId),
+            createdBy,
+            lastModifiedBy: createdBy,
         });
 
         if (!recipe) {
@@ -142,8 +145,14 @@ export class RecipeService {
             currUser,
         );
 
+        const updateRecipeData: any = { ...updateRecipeDto };
+
+        if (currUser) {
+            updateRecipeData.lastModifiedBy = new Types.ObjectId(currUser.id);
+        }
+
         const recipe = await this.recipeModel
-            .findByIdAndUpdate(id, updateRecipeDto, { new: true })
+            .findByIdAndUpdate(id, updateRecipeData, { new: true })
             .select(RecipeService.RESPONSE_FIELDS)
             .lean()
             .exec();

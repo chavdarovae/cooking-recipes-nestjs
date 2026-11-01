@@ -2,11 +2,16 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { UserRolesEnum } from '../shared/enums/user.enum';
 import * as bcrypt from 'bcryptjs';
 import { SALT_ROUNDS } from '@crp-nest-app/shared';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type UserDocument = User & Document;
 
-@Schema()
+@Schema({
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'lastModifiedAt',
+    },
+})
 export class User {
     @Prop({ required: true, minlength: 5 })
     username: string;
@@ -19,6 +24,15 @@ export class User {
 
     @Prop({ type: String, required: true, enum: UserRolesEnum })
     role: UserRolesEnum;
+
+    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+    createdBy: Types.ObjectId;
+
+    @Prop({ type: Types.ObjectId, ref: 'User' })
+    lastModifiedBy?: Types.ObjectId;
+
+    createdAt?: Date;
+    lastModifiedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
@@ -33,3 +47,5 @@ UserSchema.pre<UserDocument>('save', async function (next) {
 
 UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ username: 1 }, { unique: true });
+UserSchema.index({ createdAt: -1 }); // fast sorting by creation date
+UserSchema.index({ lastModifiedAt: -1 }); // fast sorting by last modified date
